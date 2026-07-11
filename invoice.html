@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HAYAL MARKETING - Invoice</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f4; padding: 20px; }
+        .invoice-paper {
+            width: 210mm; min-height: 297mm; margin: auto; background: white;
+            padding: 20mm; box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-sizing: border-box; display: flex; flex-direction: column;
+        }
+        .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; }
+        .details-grid { display: grid; grid-template-columns: 1fr 1fr; margin-top: 20px; gap: 10px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th { background: #eee; border: 1px solid #333; padding: 10px; }
+        td { border: 1px solid #333; padding: 10px; }
+        .footer { margin-top: auto; display: flex; justify-content: space-between; font-weight: bold; }
+        .controls { 
+            max-width: 800px; margin: 20px auto; background: white; 
+            padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .controls input { width: 100%; padding: 12px; margin-bottom: 10px; border: 2px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        .btn-add { background-color: #2563eb; color: white; padding: 15px; width: 100%; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
+        .btn-pdf { background-color: #059669; color: white; padding: 15px; width: 100%; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div id="invoice" class="invoice-paper">
+        <div class="header">
+            <h1 style="margin:0">HAYAL MARKETING</h1>
+            <p>1652/2A KAH BUILDING, TRICHY ROAD, SUNGAM, COIMBATORE - 641018</p>
+            <p>Mob: 9072758387 | MSME NO: UDYAM-TN-03-0333943</p>
+        </div>
+        <div class="details-grid">
+            <p><strong>Bill No:</strong> <span id="disp-bill"></span></p>
+            <p><strong>Date:</strong> <span id="disp-date"></span></p>
+            <p><strong>Customer:</strong> <span id="disp-cust"></span></p>
+        </div>
+        <table>
+            <thead><tr><th>SI</th><th>Description</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead>
+            <tbody id="item-list"></tbody>
+        </table>
+        <div class="footer">
+            <div>Receiver's Signature</div>
+            <div>For HAYAL MARKETING<br><br>Authorized Signature</div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+            <input id="bill" placeholder="Bill No">
+            <input id="date" type="date">
+            <input id="cust" placeholder="Customer Name">
+        </div>
+        <hr style="margin: 15px 0;">
+        <input id="desc" placeholder="Description">
+        <div style="display: flex; gap: 10px;">
+            <input id="qty" type="number" placeholder="Qty">
+            <input id="rate" type="number" placeholder="Rate">
+        </div>
+        <button class="btn-add" onclick="addItem()">Add Item</button>
+        <button class="btn-pdf" onclick="downloadPDF()">Download PDF</button>
+    </div>
+
+    <script>
+        let items = [];
+        function addItem() {
+            document.getElementById('disp-bill').innerText = document.getElementById('bill').value;
+            document.getElementById('disp-date').innerText = document.getElementById('date').value;
+            document.getElementById('disp-cust').innerText = document.getElementById('cust').value;
+
+            const desc = document.getElementById('desc').value;
+            const qty = parseFloat(document.getElementById('qty').value);
+            const rate = parseFloat(document.getElementById('rate').value);
+            if(desc && qty && rate) {
+                items.push({desc, qty, rate, amt: qty * rate});
+                document.getElementById('item-list').innerHTML = items.map((item, i) => 
+                    `<tr><td>${i+1}</td><td>${item.desc}</td><td>${item.qty}</td><td>${item.rate}</td><td>${item.amt}</td></tr>`
+                ).join('');
+            }
+        }
+
+        function downloadPDF() {
+            const opt = {
+                margin: 0,
+                filename: 'HAYAL_Invoice.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, scrollX: 0, scrollY: 0, x: 0, y: 0 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(document.getElementById('invoice')).save();
+        }
+    </script>
+</body>
+</html>
