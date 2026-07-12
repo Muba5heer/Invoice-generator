@@ -17,6 +17,7 @@
         table { width: 100%; border-collapse: collapse; margin: 20px 0; }
         th { background: #eee; border: 1px solid #333; padding: 10px; }
         td { border: 1px solid #333; padding: 10px; }
+        .total-row { font-weight: bold; background: #f9f9f9; }
         .footer { margin-top: auto; display: flex; justify-content: space-between; font-weight: bold; }
         .controls { 
             max-width: 800px; margin: 20px auto; background: white; 
@@ -43,6 +44,9 @@
         <table>
             <thead><tr><th>SI</th><th>Description</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead>
             <tbody id="item-list"></tbody>
+            <tfoot>
+                <tr class="total-row"><td colspan="4" style="text-align:right">Grand Total</td><td id="grand-total">0</td></tr>
+            </tfoot>
         </table>
         <div class="footer">
             <div>Receiver's Signature</div>
@@ -69,22 +73,35 @@
     <script>
         let items = [];
         function addItem() {
+            // Format date to dd-mm-yyyy[span_2](start_span)[span_2](end_span)
+            const rawDate = document.getElementById('date').value;
+            const formattedDate = rawDate ? rawDate.split('-').reverse().join('-') : '';
+            
             document.getElementById('disp-bill').innerText = document.getElementById('bill').value;
-            document.getElementById('disp-date').innerText = document.getElementById('date').value;
+            document.getElementById('disp-date').innerText = formattedDate;
             document.getElementById('disp-cust').innerText = document.getElementById('cust').value;
 
             const desc = document.getElementById('desc').value;
             const qty = parseFloat(document.getElementById('qty').value);
             const rate = parseFloat(document.getElementById('rate').value);
+            
             if(desc && qty && rate) {
                 items.push({desc, qty, rate, amt: qty * rate});
-                document.getElementById('item-list').innerHTML = items.map((item, i) => 
-                    `<tr><td>${i+1}</td><td>${item.desc}</td><td>${item.qty}</td><td>${item.rate}</td><td>${item.amt}</td></tr>`
-                ).join('');
+                updateTable();
             }
         }
 
+        function updateTable() {
+            let total = 0;
+            document.getElementById('item-list').innerHTML = items.map((item, i) => {
+                total += item.amt;
+                return `<tr><td>${i+1}</td><td>${item.desc}</td><td>${item.qty}</td><td>${item.rate}</td><td>${item.amt}</td></tr>`;
+            }).join('');
+            document.getElementById('grand-total').innerText = total; // Update total[span_3](start_span)[span_3](end_span)
+        }
+
         function downloadPDF() {
+            const element = document.getElementById('invoice');
             const opt = {
                 margin: 0,
                 filename: 'HAYAL_Invoice.pdf',
@@ -92,7 +109,7 @@
                 html2canvas: { scale: 2, scrollX: 0, scrollY: 0, x: 0, y: 0 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
-            html2pdf().set(opt).from(document.getElementById('invoice')).save();
+            html2pdf().set(opt).from(element).save();
         }
     </script>
 </body>
